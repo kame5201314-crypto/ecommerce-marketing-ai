@@ -15,8 +15,15 @@ import {
   SceneScript
 } from '../types/marketing';
 
-// 模擬 API 金鑰 (實際使用時應從環境變數讀取)
+import {
+  analyzeProductFromUrl,
+  generateProductCopy,
+  analyzeAudience as analyzeAudienceWithAI
+} from './openaiService';
+
+// 檢查是否有 API Key
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
+const USE_REAL_AI = !!OPENAI_API_KEY;
 
 /**
  * ① AI 商品文案自動生成
@@ -28,23 +35,37 @@ export class CopywritingService {
    */
   static async analyzeProductUrl(url: string): Promise<Partial<ProductInfo>> {
     try {
-      // 實際應用：呼叫 API 抓取網頁內容並用 AI 分析
-      // 這裡使用模擬資料
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (USE_REAL_AI) {
+        // 使用真實 AI 分析
+        console.log('🤖 使用 OpenAI 分析網址:', url);
+        const result = await analyzeProductFromUrl(url);
+        console.log('✅ AI 分析完成:', result);
+        return result;
+      } else {
+        // 使用模擬資料
+        console.log('⚠️ 未設定 API Key，使用模擬資料');
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-      return {
-        name: '智能藍牙自拍棒',
-        description: '可伸縮、支援 360 度旋轉',
-        category: '3C配件',
-        attributes: {
-          color: ['黑色', '白色', '粉色'],
-          material: '鋁合金',
-          usage: ['自拍', '旅遊', '直播']
-        }
-      };
+        return {
+          name: '智能藍牙自拍棒',
+          description: '可伸縮、支援 360 度旋轉',
+          category: '3C配件',
+          attributes: {
+            color: ['黑色', '白色', '粉色'],
+            material: '鋁合金',
+            usage: ['自拍', '旅遊', '直播']
+          }
+        };
+      }
     } catch (error) {
       console.error('網址分析失敗:', error);
-      throw error;
+      // 失敗時回退到模擬資料
+      console.log('⚠️ AI 分析失敗，使用模擬資料');
+      return {
+        name: '商品名稱（請手動修改）',
+        description: '商品描述',
+        category: '未分類'
+      };
     }
   }
 
@@ -56,13 +77,24 @@ export class CopywritingService {
     type: CopywritingType
   ): Promise<GeneratedCopy> {
     try {
-      // 實際應用：呼叫 OpenAI API
-      // const response = await openai.chat.completions.create({...});
+      let copies;
 
-      // 模擬 AI 生成
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const copies = this.getMockCopy(product, type);
+      if (USE_REAL_AI) {
+        // 使用真實 AI 生成
+        console.log(`🤖 使用 OpenAI 生成 ${type} 文案:`, product.name);
+        const result = await generateProductCopy(
+          product.name,
+          product.description || '',
+          type
+        );
+        console.log('✅ AI 文案生成完成');
+        copies = result;
+      } else {
+        // 使用模擬資料
+        console.log(`⚠️ 未設定 API Key，使用模擬 ${type} 文案`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        copies = this.getMockCopy(product, type);
+      }
 
       return {
         id: `copy_${Date.now()}`,
@@ -75,7 +107,18 @@ export class CopywritingService {
       };
     } catch (error) {
       console.error('文案生成失敗:', error);
-      throw error;
+      // 失敗時回退到模擬資料
+      console.log('⚠️ AI 生成失敗，使用模擬資料');
+      const copies = this.getMockCopy(product, type);
+      return {
+        id: `copy_${Date.now()}`,
+        productId: product.id,
+        type,
+        title: copies.title,
+        content: copies.content,
+        keywords: copies.keywords,
+        createdAt: new Date()
+      };
     }
   }
 
@@ -774,13 +817,26 @@ export class AudienceAnalysisService {
    */
   static async analyzeAudience(product: ProductInfo): Promise<AudienceAnalysis> {
     try {
-      // 實際應用：呼叫 AI API 分析
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      return this.getMockAudienceAnalysis(product);
+      if (USE_REAL_AI) {
+        // 使用真實 AI 分析
+        console.log('🤖 使用 OpenAI 分析受眾:', product.name);
+        const result = await analyzeAudienceWithAI(
+          product.name,
+          product.description || ''
+        );
+        console.log('✅ AI 受眾分析完成');
+        return result;
+      } else {
+        // 使用模擬資料
+        console.log('⚠️ 未設定 API Key，使用模擬受眾分析');
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        return this.getMockAudienceAnalysis(product);
+      }
     } catch (error) {
       console.error('受眾分析失敗:', error);
-      throw error;
+      // 失敗時回退到模擬資料
+      console.log('⚠️ AI 分析失敗，使用模擬資料');
+      return this.getMockAudienceAnalysis(product);
     }
   }
 
