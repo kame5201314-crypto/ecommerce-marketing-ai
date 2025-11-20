@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Search, Package, Store, ShoppingBag } from 'lucide-react';
+import { Search, Package, Store, ShoppingBag, AlertCircle } from 'lucide-react';
 import { SearchInterface } from './components/SearchInterface';
 import { ComparisonResults } from './components/ComparisonResults';
 import { ProductResult } from './services/crawlers';
+import { isSupabaseConfigured } from './lib/supabase';
 
 function App() {
   const [searchResults, setSearchResults] = useState<ProductResult[]>([]);
   const [searchKeywords, setSearchKeywords] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const isConfigured = isSupabaseConfigured();
 
   const handleSearchComplete = (results: ProductResult[], keywords?: string[]) => {
     setSearchResults(results);
@@ -65,6 +67,28 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Configuration Warning */}
+        {!isConfigured && (
+          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-yellow-800 mb-1">
+                  ⚙️ 系統配置提醒
+                </h3>
+                <p className="text-sm text-yellow-700 mb-2">
+                  Supabase 環境變數尚未配置，數據庫功能將無法使用。搜尋功能仍可正常使用。
+                </p>
+                <p className="text-xs text-yellow-600">
+                  請在 Vercel Dashboard 的 Settings → Environment Variables 中添加：
+                  <code className="ml-1 bg-yellow-100 px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> 和
+                  <code className="ml-1 bg-yellow-100 px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {!showResults ? (
           <div className="space-y-8">
             {/* Hero Section */}
