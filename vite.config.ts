@@ -7,18 +7,20 @@ import * as path from 'path'
 export default defineConfig(() => {
   // Try to load .env file if it exists
   const envPath = path.resolve(process.cwd(), '.env')
+  const envVars: Record<string, any> = {}
+
   if (fs.existsSync(envPath)) {
     const envContent = fs.readFileSync(envPath, 'utf-8')
-    const envVars: Record<string, string> = {}
 
     envContent.split('\n').forEach(line => {
       const match = line.match(/^([^=:#]+)=(.*)$/)
       if (match) {
         const key = match[1].trim()
         const value = match[2].trim()
-        envVars[key] = value
         // Also set in process.env for Vite to pick up
         process.env[key] = value
+        // Create define entries for import.meta.env
+        envVars[`import.meta.env.${key}`] = JSON.stringify(value)
       }
     })
 
@@ -27,5 +29,6 @@ export default defineConfig(() => {
 
   return {
     plugins: [react()],
+    define: envVars,
   }
 })
