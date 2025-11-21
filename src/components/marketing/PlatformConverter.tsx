@@ -26,7 +26,7 @@ export default function PlatformConverter() {
         setProductInfo(mergedInfo);
 
         // 分析完成後繼續轉換
-        const copy = await CopywritingService.generateCopy(mergedInfo, CopywritingType.ECOMMERCE);
+        const copy = await CopywritingService.generateCopy(mergedInfo, CopywritingType.PRODUCT_INTRO);
         const converted = await PlatformConversionService.convertToPlatform(
           mergedInfo,
           copy,
@@ -49,7 +49,7 @@ export default function PlatformConverter() {
     setLoading(true);
     try {
       // 先生成基礎文案
-      const copy = await CopywritingService.generateCopy(productInfo, CopywritingType.ECOMMERCE);
+      const copy = await CopywritingService.generateCopy(productInfo, CopywritingType.PRODUCT_INTRO);
 
       // 轉換為平台格式
       const converted = await PlatformConversionService.convertToPlatform(
