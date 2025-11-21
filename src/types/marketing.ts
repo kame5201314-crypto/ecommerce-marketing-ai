@@ -23,7 +23,11 @@ export enum CopywritingType {
   ECOMMERCE = 'ecommerce',
   EMOTIONAL = 'emotional',
   SHORT_TITLE = 'short_title',
-  SHOPEE_SPEC = 'shopee_spec'
+  SHOPEE_SPEC = 'shopee_spec',
+  SHOPEE_TITLE = 'shopee_title',       // 蝦皮標題（60字以內）
+  PRODUCT_SPEC = 'product_spec',        // 商品規格
+  PRODUCT_FEATURES = 'product_features', // 商品特色/賣點
+  PRODUCT_OPTIONS = 'product_options'   // 商品選項（顏色/尺寸等）
 }
 
 // 生成的文案

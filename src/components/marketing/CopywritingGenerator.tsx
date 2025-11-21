@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, Download, Save, Wand2, Link, Loader2 } from 'lucide-react';
+import { Copy, Download, Save, Wand2, Loader2, FileSpreadsheet } from 'lucide-react';
 import {
   ProductInfo,
   CopywritingType,
@@ -83,6 +83,46 @@ export default function CopywritingGenerator() {
     link.click();
   };
 
+  // 匯出蝦皮格式表格
+  const handleExportShopeeTable = () => {
+    // 找出蝦皮相關的文案
+    const shopeeTitle = generatedCopies.find(c => c.type === CopywritingType.SHOPEE_TITLE);
+    const shopeeSpec = generatedCopies.find(c => c.type === CopywritingType.SHOPEE_SPEC);
+    const productSpec = generatedCopies.find(c => c.type === CopywritingType.PRODUCT_SPEC);
+    const productFeatures = generatedCopies.find(c => c.type === CopywritingType.PRODUCT_FEATURES);
+    const productOptions = generatedCopies.find(c => c.type === CopywritingType.PRODUCT_OPTIONS);
+
+    // 建立蝦皮上架用的 CSV
+    const headers = [
+      '商品名稱',
+      '蝦皮標題',
+      '商品規格',
+      '商品特色',
+      '商品選項',
+      '蝦皮規格賣點'
+    ];
+
+    const row = [
+      productInfo.name || '',
+      shopeeTitle?.title || '',
+      productSpec?.content || '',
+      productFeatures?.content || '',
+      productOptions?.content || '',
+      shopeeSpec?.content || ''
+    ];
+
+    const csvContent = [
+      '\uFEFF' + headers.join(','), // BOM for Excel UTF-8
+      row.map(cell => `"${cell.replace(/"/g, '""').replace(/\n/g, '\n')}"`).join(',')
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `shopee_product_${Date.now()}.csv`;
+    link.click();
+  };
+
   // 切換文案類型選擇
   const toggleType = (type: CopywritingType) => {
     if (selectedTypes.includes(type)) {
@@ -98,7 +138,11 @@ export default function CopywritingGenerator() {
     [CopywritingType.ECOMMERCE]: '電商銷售版',
     [CopywritingType.EMOTIONAL]: '感性故事版',
     [CopywritingType.SHORT_TITLE]: '短標題',
-    [CopywritingType.SHOPEE_SPEC]: '蝦皮規格＋賣點'
+    [CopywritingType.SHOPEE_SPEC]: '蝦皮規格＋賣點',
+    [CopywritingType.SHOPEE_TITLE]: '蝦皮標題',
+    [CopywritingType.PRODUCT_SPEC]: '商品規格',
+    [CopywritingType.PRODUCT_FEATURES]: '商品特色',
+    [CopywritingType.PRODUCT_OPTIONS]: '商品選項'
   };
 
   return (
@@ -205,17 +249,26 @@ export default function CopywritingGenerator() {
       {/* 生成結果 */}
       {generatedCopies.length > 0 && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <h3 className="text-xl font-semibold text-gray-800">
               生成結果（{generatedCopies.length} 篇）
             </h3>
-            <button
-              onClick={handleExportCsv}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-            >
-              <Download size={18} />
-              匯出 CSV
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportShopeeTable}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2"
+              >
+                <FileSpreadsheet size={18} />
+                匯出蝦皮表格
+              </button>
+              <button
+                onClick={handleExportCsv}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+              >
+                <Download size={18} />
+                匯出 CSV
+              </button>
+            </div>
           </div>
 
           {generatedCopies.map(copy => (
