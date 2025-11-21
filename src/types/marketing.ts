@@ -17,17 +17,33 @@ export interface ProductInfo {
   };
 }
 
-// 文案類型
+// 文案類型（精簡版）
 export enum CopywritingType {
-  SEO = 'seo',
-  ECOMMERCE = 'ecommerce',
-  EMOTIONAL = 'emotional',
-  SHORT_TITLE = 'short_title',
-  SHOPEE_SPEC = 'shopee_spec',
-  SHOPEE_TITLE = 'shopee_title',       // 蝦皮標題（60字以內）
-  PRODUCT_SPEC = 'product_spec',        // 商品規格
-  PRODUCT_FEATURES = 'product_features', // 商品特色/賣點
-  PRODUCT_OPTIONS = 'product_options'   // 商品選項（顏色/尺寸等）
+  PRODUCT_INTRO = 'product_intro',      // 商品介紹＋賣點
+  PRODUCT_TITLE = 'product_title',      // 商品標題
+  PRODUCT_SPEC = 'product_spec'         // 商品規格
+}
+
+// 文案長度選項
+export enum CopyLength {
+  SHORT = 'short',   // 100字以內
+  MEDIUM = 'medium', // 200字以內
+  LONG = 'long'      // 300字以內
+}
+
+// 標題長度選項
+export enum TitleLength {
+  LONG = 'long',     // 60字以內
+  SHORT = 'short'    // 30字以內
+}
+
+// 文案生成選項
+export interface CopyGenerationOptions {
+  type: CopywritingType;
+  count: number;           // 1-10
+  length?: CopyLength;     // 商品介紹用
+  titleLength?: TitleLength; // 商品標題用
+  keywordCount?: number;   // 5-20
 }
 
 // 生成的文案

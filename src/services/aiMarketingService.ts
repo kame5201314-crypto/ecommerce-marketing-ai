@@ -3,6 +3,8 @@
 import {
   ProductInfo,
   CopywritingType,
+  CopyLength,
+  TitleLength,
   GeneratedCopy,
   ImageGenerationOptions,
   GeneratedImage,
@@ -14,6 +16,22 @@ import {
   AudienceAnalysis,
   SceneScript
 } from '../types/marketing';
+
+// 生成選項介面
+interface GenerateAllOptions {
+  introCount: number;
+  introLength: CopyLength;
+  titleCount: number;
+  titleLength: TitleLength;
+  generateSpec: boolean;
+  keywordCount: number;
+}
+
+// 生成結果介面
+interface GenerateAllResult {
+  copies: GeneratedCopy[];
+  keywords: string[];
+}
 
 // 優先使用 OpenRouter（支援多種模型），其次使用 OpenAI
 import {
@@ -167,162 +185,288 @@ export class CopywritingService {
   }
 
   /**
-   * 模擬文案資料
+   * 一次生成所有文案（新版簡化介面）
+   */
+  static async generateAllCopies(
+    product: ProductInfo,
+    options: GenerateAllOptions
+  ): Promise<GenerateAllResult> {
+    const copies: GeneratedCopy[] = [];
+    const allKeywords: string[] = [];
+
+    // 模擬延遲
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // 生成商品標題
+    for (let i = 0; i < options.titleCount; i++) {
+      const titleData = this.generateMockTitle(product, options.titleLength, i);
+      copies.push({
+        id: `title_${Date.now()}_${i}`,
+        productId: product.id,
+        type: CopywritingType.PRODUCT_TITLE,
+        title: titleData.title,
+        content: '',
+        createdAt: new Date()
+      });
+    }
+
+    // 生成商品介紹＋賣點
+    for (let i = 0; i < options.introCount; i++) {
+      const introData = this.generateMockIntro(product, options.introLength, i);
+      copies.push({
+        id: `intro_${Date.now()}_${i}`,
+        productId: product.id,
+        type: CopywritingType.PRODUCT_INTRO,
+        title: `版本 ${i + 1}`,
+        content: introData.content,
+        createdAt: new Date()
+      });
+      // 收集關鍵字
+      allKeywords.push(...introData.keywords);
+    }
+
+    // 生成商品規格
+    if (options.generateSpec) {
+      const specData = this.generateMockSpec(product);
+      copies.push({
+        id: `spec_${Date.now()}`,
+        productId: product.id,
+        type: CopywritingType.PRODUCT_SPEC,
+        title: '商品規格',
+        content: specData.content,
+        createdAt: new Date()
+      });
+    }
+
+    // 生成額外關鍵字到達指定數量
+    const baseKeywords = [
+      product.name, '熱銷', '推薦', '必買', '優惠',
+      '限時', '現貨', '台灣', '高品質', '超值',
+      '人氣', '好評', '首選', '精選', '熱賣',
+      '免運', '特價', '新品', '暢銷', '實用'
+    ];
+
+    // 去重並限制數量
+    const uniqueKeywords = [...new Set([...allKeywords, ...baseKeywords])];
+    const finalKeywords = uniqueKeywords.slice(0, options.keywordCount);
+
+    return {
+      copies,
+      keywords: finalKeywords
+    };
+  }
+
+  /**
+   * 生成模擬標題
+   */
+  private static generateMockTitle(product: ProductInfo, length: TitleLength, index: number) {
+    const longTitles = [
+      `【現貨免運】${product.name} 高品質專業款 台灣保固 限時優惠中`,
+      `【熱銷推薦】${product.name} 全新升級版 超值特惠 快速出貨`,
+      `【限時特價】${product.name} 人氣爆款 好評熱賣 現貨秒發`,
+      `【台灣現貨】${product.name} 品質保證 售後無憂 滿額免運`,
+      `【新品上市】${product.name} 獨家設計 時尚必備 超低優惠`,
+      `【買一送一】${product.name} 超值組合 限量供應 把握機會`,
+      `【年度熱銷】${product.name} 萬人推薦 五星好評 品質保證`,
+      `【破盤價】${product.name} 工廠直銷 最低價格 品質不變`,
+      `【爆款推薦】${product.name} 網紅同款 時尚百搭 必入手`,
+      `【獨家優惠】${product.name} 會員專屬 額外折扣 限時搶購`
+    ];
+
+    const shortTitles = [
+      `${product.name}｜現貨免運｜限時特惠`,
+      `${product.name}｜熱銷推薦｜品質保證`,
+      `${product.name}｜超值優惠｜快速出貨`,
+      `${product.name}｜人氣爆款｜限量特價`,
+      `${product.name}｜新品上市｜獨家設計`,
+      `${product.name}｜台灣保固｜售後無憂`,
+      `${product.name}｜年度熱銷｜好評推薦`,
+      `${product.name}｜工廠直銷｜最低價`,
+      `${product.name}｜網紅同款｜時尚必備`,
+      `${product.name}｜會員專屬｜額外折扣`
+    ];
+
+    const titles = length === TitleLength.LONG ? longTitles : shortTitles;
+    return { title: titles[index % titles.length] };
+  }
+
+  /**
+   * 生成模擬商品介紹
+   */
+  private static generateMockIntro(product: ProductInfo, length: CopyLength, index: number) {
+    const shortIntros = [
+      {
+        content: `${product.name}是您生活中不可或缺的好幫手！採用優質材料製作，品質有保障。台灣現貨，快速出貨，讓您安心購買。`,
+        keywords: ['優質', '台灣現貨', '快速出貨']
+      },
+      {
+        content: `精選${product.name}，品質保證，價格實惠。專業設計，滿足您的各種需求。限時優惠中，手刀搶購！`,
+        keywords: ['精選', '品質保證', '限時優惠']
+      },
+      {
+        content: `熱銷${product.name}，眾多顧客好評推薦！實用又美觀，送禮自用兩相宜。現在下單享專屬優惠。`,
+        keywords: ['熱銷', '好評', '專屬優惠']
+      }
+    ];
+
+    const mediumIntros = [
+      {
+        content: `${product.name}是您生活中不可或缺的好幫手！
+
+✨ 產品特色：
+• 採用優質材料，品質有保障
+• 專業設計，滿足各種需求
+• 時尚外觀，實用又美觀
+
+🎁 購買保障：
+• 台灣現貨，24小時快速出貨
+• 七天鑑賞期，安心購買
+• 專業客服，售後無憂
+
+限時優惠中，把握機會！`,
+        keywords: ['優質', '專業設計', '快速出貨', '限時優惠']
+      },
+      {
+        content: `為什麼選擇我們的${product.name}？
+
+🌟 品質保證
+嚴選優質材料，經過多重品管檢測，確保每件商品都達到最高標準。
+
+💝 貼心服務
+專業客服團隊，隨時為您解答疑問。購物無憂，售後有保障。
+
+🚚 快速到貨
+台灣在地倉儲，下單後快速出貨，讓您盡早收到心愛的商品。
+
+立即購買，享受品質生活！`,
+        keywords: ['品質保證', '貼心服務', '快速到貨']
+      }
+    ];
+
+    const longIntros = [
+      {
+        content: `${product.name} - 您值得擁有的品質之選
+
+📌 產品介紹
+這款${product.name}是我們精心挑選的優質商品，採用頂級材料製作，經過嚴格品質把關，每一個細節都經過精心設計，只為給您帶來最佳的使用體驗。
+
+✨ 核心特色
+1. 優質材料 - 嚴選高品質原料，耐用度高，使用壽命長
+2. 精緻做工 - 專業工藝製作，細節處理到位
+3. 時尚設計 - 外觀美觀大方，百搭各種場合
+4. 實用便利 - 功能齊全，操作簡單，輕鬆上手
+
+🎯 適用場景
+無論是日常生活、工作使用，還是送禮首選，這款商品都能完美滿足您的需求。
+
+🛡️ 購物保障
+• 台灣現貨，快速出貨
+• 七天鑑賞期，不滿意可退
+• 一年保固，品質有保證
+• 專業客服，隨時為您服務
+
+💰 限時優惠
+現在購買即享專屬折扣，數量有限，售完為止！把握機會，立即下單！`,
+        keywords: ['品質之選', '優質材料', '精緻做工', '時尚設計', '實用便利', '限時優惠']
+      },
+      {
+        content: `🌟 ${product.name} - 萬人推薦的熱銷商品
+
+【為什麼這麼多人選擇我們？】
+
+這款${product.name}自上市以來，已經累積超過數千位滿意顧客的好評！讓我們告訴您，為什麼這款商品能獲得如此高的評價。
+
+【產品優勢】
+✓ 品質保證：採用優質材料，通過多項品質認證
+✓ 專業設計：人性化設計，使用更便利
+✓ 耐用持久：精良做工，使用壽命更長
+✓ 美觀時尚：外觀精緻，質感出眾
+
+【顧客評價】
+「買了好幾次了，品質一直都很穩定！」- 小美
+「出貨超快，客服也很親切，推薦！」- 阿明
+「CP值超高，已經推薦給朋友了～」- 小琪
+
+【購物保障】
+📦 台灣在地倉儲，下單後1-2天快速到貨
+🔄 七天鑑賞期，不滿意全額退款
+🛡️ 品質保固，售後服務完善
+💬 專業客服，即時回覆您的問題
+
+【專屬優惠】
+現在下單享有限時折扣，還有滿額免運優惠！數量有限，要買要快！`,
+        keywords: ['萬人推薦', '熱銷', '品質保證', '專業設計', '快速到貨', '限時折扣']
+      }
+    ];
+
+    let intros;
+    switch (length) {
+      case CopyLength.SHORT:
+        intros = shortIntros;
+        break;
+      case CopyLength.MEDIUM:
+        intros = mediumIntros;
+        break;
+      case CopyLength.LONG:
+        intros = longIntros;
+        break;
+      default:
+        intros = mediumIntros;
+    }
+
+    return intros[index % intros.length];
+  }
+
+  /**
+   * 生成模擬商品規格
+   */
+  private static generateMockSpec(product: ProductInfo) {
+    return {
+      content: `【商品規格】
+・品名：${product.name}
+・材質：優質材料
+・顏色：多色可選
+・尺寸：標準尺寸
+・重量：輕巧便攜
+・產地：台灣
+・保固：一年保固
+
+【包裝內容】
+・商品本體 x1
+・使用說明書 x1
+・原廠包裝盒 x1
+
+【注意事項】
+・請依照說明書正確使用
+・請放置於乾燥陰涼處保存
+・如有任何問題請聯繫客服`
+    };
+  }
+
+  /**
+   * 模擬文案資料（保留舊版相容）
    */
   private static getMockCopy(product: ProductInfo, type: CopywritingType) {
     const copies: Record<CopywritingType, any> = {
-      [CopywritingType.SEO]: {
-        title: `【2024最新】${product.name} | 專業級自拍神器 | 藍牙遙控 | 台灣現貨`,
-        content: `${product.name}是您旅遊自拍的最佳選擇！採用航太級鋁合金材質，輕巧便攜卻堅固耐用。內建藍牙 5.0 遙控器，10 公尺遠距離操控，支援 iOS 與 Android 雙系統。360 度旋轉球型雲台，讓您輕鬆捕捉每個完美角度。可伸縮設計 20-100cm，滿足各種拍攝需求。適合旅遊、聚會、直播、Vlog 拍攝。`,
-        keywords: ['自拍棒', '藍牙自拍棒', '旅遊必備', '直播器材', 'vlog設備']
+      [CopywritingType.PRODUCT_INTRO]: {
+        title: `${product.name} - 商品介紹`,
+        content: `${product.name}是您生活中不可或缺的好幫手！採用優質材料製作，品質有保障。專業設計，滿足您的各種需求。台灣現貨，快速出貨，讓您安心購買。`,
+        keywords: ['優質', '專業', '台灣現貨']
       },
-      [CopywritingType.ECOMMERCE]: {
-        title: `限時特價！專業級藍牙自拍棒 - 旅遊/直播必備`,
-        content: `
-🔥 限時優惠中！原價 $990，現在只要 $599！
-
-✨ 五大特色：
-• 藍牙 5.0 遙控，10 公尺遠距操控
-• 360° 旋轉雲台，任意角度隨心拍
-• 20-100cm 可伸縮，適應各種場景
-• 航太級鋁合金，輕巧堅固
-• 支援 iOS/Android 雙系統
-
-📦 包裝內容：
-✓ 自拍棒主體 x1
-✓ 藍牙遙控器 x1
-✓ USB 充電線 x1
-✓ 手提收納袋 x1
-
-🚚 台灣現貨，24 小時快速出貨
-🛡️ 一年保固，七天鑑賞期
-
-立即下單，開始您的精彩拍攝之旅！
-        `,
-        keywords: ['限時特價', '現貨', '快速出貨']
-      },
-      [CopywritingType.EMOTIONAL]: {
-        title: `記錄每個美好瞬間，從擁有它開始`,
-        content: `
-還記得上次旅行，想拍全景照卻找不到路人幫忙的尷尬嗎？
-還記得和朋友聚會，總有人要當攝影師無法入鏡的遺憾嗎？
-
-有了這支智能自拍棒，每個珍貴時刻都不再錯過。
-
-晨曦中的海邊，只有你和浪花。輕按遙控器，定格這份寧靜。
-夕陽下的山頂，朋友們的笑容。伸長自拍棒，把整片天空都收進照片。
-
-它不只是一支自拍棒，
-它是你的專屬攝影師，
-是旅途中最可靠的夥伴，
-是幫你記錄生活每個美好瞬間的魔法棒。
-
-因為人生只有一次，每個瞬間都值得被完美保存。
-        `,
-        keywords: ['旅行回憶', '美好時光', '珍貴瞬間']
-      },
-      [CopywritingType.SHORT_TITLE]: {
-        title: `藍牙自拍棒｜遠距遙控｜360°旋轉｜旅遊必備`,
-        content: `專業級自拍神器，輕鬆拍出完美照片`,
-        keywords: ['簡短', '精準']
-      },
-      [CopywritingType.SHOPEE_SPEC]: {
-        title: `【現貨】專業藍牙自拍棒 遙控伸縮 360度旋轉 輕巧便攜`,
-        content: `
-【商品規格】
-・材質：航太級鋁合金
-・顏色：黑色/白色/粉色
-・伸縮範圍：20-100cm
-・重量：180g
-・連接方式：藍牙 5.0
-・遙控距離：10 公尺
-・電池：CR2032（遙控器）
-・兼容系統：iOS 5.0+ / Android 4.3+
-・保固：一年
-
-【商品賣點】
-✓ 藍牙遙控，解放雙手
-✓ 360° 球型雲台，任意角度
-✓ 輕巧便攜，僅 180g
-✓ 穩固夾持，支援大螢幕手機
-✓ 防滑手柄，握感舒適
-✓ 台灣現貨，快速出貨
-        `,
-        keywords: ['規格', '賣點', '蝦皮格式']
-      },
-      [CopywritingType.SHOPEE_TITLE]: {
-        title: `【現貨免運】${product.name} 藍牙遙控 360度旋轉 伸縮自拍棒 旅遊必備`,
-        content: `蝦皮標題建議（60字以內）：
-• 【現貨免運】${product.name} 藍牙遙控 360度旋轉
-• 【熱銷】專業自拍棒 藍牙遙控 伸縮設計 輕便攜帶
-• 【台灣現貨】智能自拍棒｜藍牙5.0｜360度旋轉雲台
-• 【限時特價】專業級自拍棒 遠距遙控 旅遊直播必備`,
-        keywords: ['蝦皮標題', '60字', '關鍵字']
+      [CopywritingType.PRODUCT_TITLE]: {
+        title: `【現貨免運】${product.name} 高品質專業款 限時優惠`,
+        content: '',
+        keywords: ['現貨', '免運', '限時優惠']
       },
       [CopywritingType.PRODUCT_SPEC]: {
-        title: `${product.name} - 商品規格表`,
+        title: `${product.name} - 商品規格`,
         content: `【商品規格】
 ・品名：${product.name}
-・材質：航太級鋁合金 + ABS 工程塑膠
-・顏色：黑色 / 白色 / 粉色 / 藍色
-・尺寸：收合 20cm / 展開 100cm
-・重量：約 180g
-・連接方式：藍牙 5.0
-・遙控距離：約 10 公尺
-・電池規格：CR2032 鈕扣電池（遙控器）
-・兼容系統：iOS 5.0+ / Android 4.3+
-・適用手機寬度：5.5-9.5cm
-・雲台角度：360° 水平旋轉 + 180° 垂直調整
-・產地：台灣設計 / 中國製造
+・材質：優質材料
+・顏色：多色可選
+・產地：台灣
 ・保固：一年保固`,
-        keywords: ['規格', '尺寸', '材質']
-      },
-      [CopywritingType.PRODUCT_FEATURES]: {
-        title: `${product.name} - 商品特色`,
-        content: `【商品特色 / 賣點】
-🌟 五大核心特色：
-1️⃣ 藍牙 5.0 智能遙控
-   ・10 公尺遠距操控，輕按即拍
-   ・支援 iOS / Android 雙系統
-   ・免 App，開機即連
-
-2️⃣ 360° 全方位雲台
-   ・水平 360° + 垂直 180° 自由調整
-   ・球型雲台設計，任意角度定格
-
-3️⃣ 伸縮便攜設計
-   ・20-100cm 五段伸縮
-   ・收合僅 20cm，放入包包不佔空間
-
-4️⃣ 航太級鋁合金材質
-   ・輕量化設計僅 180g
-   ・堅固耐用不易彎折
-
-5️⃣ 穩固手機夾持
-   ・5.5-9.5cm 寬度適用
-   ・防滑矽膠墊，保護手機`,
-        keywords: ['特色', '賣點', '優勢']
-      },
-      [CopywritingType.PRODUCT_OPTIONS]: {
-        title: `${product.name} - 商品選項`,
-        content: `【商品選項】
-
-📦 顏色選項：
-・經典黑 - 穩重大方，百搭首選
-・珍珠白 - 簡約時尚，清新質感
-・櫻花粉 - 甜美可愛，女生最愛
-・天空藍 - 活力清新，年輕活潑
-
-📐 規格選項：
-・標準版 - 自拍棒 + 遙控器
-・豪華版 - 自拍棒 + 遙控器 + 三腳架
-・旗艦版 - 自拍棒 + 遙控器 + 三腳架 + 補光燈
-
-🎁 加購選項：
-・替換遙控器電池 x2 (+$30)
-・絨布收納袋 (+$50)
-・手機廣角鏡頭 (+$199)`,
-        keywords: ['選項', '顏色', '規格']
+        keywords: ['規格', '材質', '保固']
       }
     };
 
