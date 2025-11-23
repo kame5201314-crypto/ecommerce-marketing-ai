@@ -247,7 +247,7 @@ export default function CopywritingGenerator() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-2">文案長度</label>
+              <label className="block text-sm text-gray-600 mb-2">文案長度 (不含固定文案)</label>
               <div className="flex gap-2">
                 {Object.values(CopyLength).map(len => (
                   <button
