@@ -27,6 +27,7 @@ export default function FBAdGenerator() {
 
   const [adCount, setAdCount] = useState(3);
   const [copyLength, setCopyLength] = useState<FBCopyLength>(FBCopyLength.SHORT);
+  const [customFooter, setCustomFooter] = useState('');
   const [ads, setAds] = useState<FBAdCopy[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -49,7 +50,7 @@ export default function FBAdGenerator() {
       }
 
       // 生成廣告
-      const generated = generateFBAds(finalProductInfo, adCount, copyLength);
+      const generated = generateFBAds(finalProductInfo, adCount, copyLength, customFooter);
       setAds(generated);
     } catch (error) {
       alert('廣告生成失敗，請稍後再試');
@@ -59,7 +60,7 @@ export default function FBAdGenerator() {
   };
 
   // 生成 FB 廣告文案
-  const generateFBAds = (product: ProductInfo, count: number, length: FBCopyLength): FBAdCopy[] => {
+  const generateFBAds = (product: ProductInfo, count: number, length: FBCopyLength, footer: string): FBAdCopy[] => {
     const ads: FBAdCopy[] = [];
 
     // 標題模板 (40字以內)
@@ -127,10 +128,13 @@ export default function FBAdGenerator() {
     }
 
     for (let i = 0; i < count; i++) {
+      const baseText = texts[i % texts.length];
+      const finalText = footer ? `${baseText}\n\n${footer}` : baseText;
+
       ads.push({
         id: `fb_ad_${Date.now()}_${i}`,
         headline: headlines[i % headlines.length].substring(0, 40),
-        primaryText: texts[i % texts.length],
+        primaryText: finalText,
         description: descriptions[i % descriptions.length]
       });
     }
@@ -271,6 +275,25 @@ export default function FBAdGenerator() {
               <div className="text-sm text-gray-500">500字以內</div>
             </button>
           </div>
+        </div>
+
+        {/* 固定文案 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            固定文案（選填）
+          </label>
+          <textarea
+            value={customFooter}
+            onChange={(e) => setCustomFooter(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            rows={3}
+            placeholder="輸入固定文案，會自動加在所有廣告文案的最下方...&#10;例如：&#10;🔥 立即私訊下單&#10;📞 Line: @yourshop&#10;📍 蝦皮賣場：https://..."
+          />
+          {customFooter && (
+            <p className="text-xs text-gray-500 mt-1">
+              此文案會自動加入所有生成的廣告文案末尾
+            </p>
+          )}
         </div>
       </div>
 
