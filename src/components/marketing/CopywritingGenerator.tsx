@@ -96,7 +96,7 @@ export default function CopywritingGenerator() {
     }
 
     if (introResults.length > 0) {
-      content += `【商品介紹＋賣點】\n`;
+      content += `【標題＋商品介紹＋賣點】\n`;
       introResults.forEach((intro, i) => {
         content += `--- 版本 ${i + 1} ---\n`;
         content += `${intro.content}\n\n`;
@@ -193,43 +193,6 @@ export default function CopywritingGenerator() {
       <div className="bg-white rounded-lg shadow p-6 space-y-6">
         <h3 className="text-lg font-semibold text-gray-800">生成設定</h3>
 
-        {/* 商品介紹設定 */}
-        <div className="border-b pb-4">
-          <h4 className="font-medium text-gray-700 mb-3">商品介紹＋賣點</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-gray-600 mb-2">產出數量</label>
-              <select
-                value={introCount}
-                onChange={(e) => setIntroCount(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                  <option key={n} value={n}>{n} 篇</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 mb-2">文案長度</label>
-              <div className="flex gap-2">
-                {Object.values(CopyLength).map(len => (
-                  <button
-                    key={len}
-                    onClick={() => setIntroLength(len)}
-                    className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm transition-all ${
-                      introLength === len
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                  >
-                    {lengthLabels[len]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* 商品標題設定 */}
         <div className="border-b pb-4">
           <h4 className="font-medium text-gray-700 mb-3">商品標題</h4>
@@ -260,6 +223,43 @@ export default function CopywritingGenerator() {
                     }`}
                   >
                     {titleLengthLabels[len]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 商品介紹設定 */}
+        <div className="border-b pb-4">
+          <h4 className="font-medium text-gray-700 mb-3">標題＋商品介紹＋賣點</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-600 mb-2">產出數量</label>
+              <select
+                value={introCount}
+                onChange={(e) => setIntroCount(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                  <option key={n} value={n}>{n} 篇</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-2">文案長度</label>
+              <div className="flex gap-2">
+                {Object.values(CopyLength).map(len => (
+                  <button
+                    key={len}
+                    onClick={() => setIntroLength(len)}
+                    className={`flex-1 px-3 py-2 rounded-lg border-2 text-sm transition-all ${
+                      introLength === len
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    {lengthLabels[len]}
                   </button>
                 ))}
               </div>
@@ -363,7 +363,7 @@ export default function CopywritingGenerator() {
           {/* 商品介紹結果 */}
           {generatedCopies.filter(c => c.type === CopywritingType.PRODUCT_INTRO).length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
-              <h4 className="font-semibold text-gray-800 mb-4 text-lg">商品介紹＋賣點</h4>
+              <h4 className="font-semibold text-gray-800 mb-4 text-lg">標題＋商品介紹＋賣點</h4>
               <div className="space-y-4">
                 {generatedCopies
                   .filter(c => c.type === CopywritingType.PRODUCT_INTRO)

@@ -1,7 +1,7 @@
-import MarketingAutomationSystem from './components/marketing/MarketingAutomationSystem';
+import AIAutomationApp from './AIAutomationApp';
 
 function App() {
-  return <MarketingAutomationSystem />;
+  return <AIAutomationApp />;
 }
 
 export default App;
